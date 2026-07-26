@@ -10,6 +10,7 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/pinctrl/qcom-pinctrl.h>
 #include <linux/regulator/consumer.h>
+#include <linux/version.h>
 #include <soc/qcom/cmd-db.h>
 #include "main.h"
 #include "qmi.h"
@@ -1009,7 +1010,9 @@ void icnss_aop_interface_deinit(struct icnss_priv *priv)
 		mbox_free_channel(priv->mbox_chan);
 
 	if (!IS_ERR_OR_NULL(priv->qmp)) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
 		qmp_put(priv->qmp);
+#endif
 		priv->use_direct_qmp = false;
 	}
 }

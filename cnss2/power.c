@@ -13,6 +13,7 @@
 #include <linux/pinctrl/qcom-pinctrl.h>
 #endif
 #include <linux/regulator/consumer.h>
+#include <linux/version.h>
 #if IS_ENABLED(CONFIG_QCOM_COMMAND_DB)
 #include <soc/qcom/cmd-db.h>
 #endif
@@ -1879,7 +1880,9 @@ static int cnss_qmp_init(struct cnss_plat_data *plat_priv)
 static void cnss_qmp_deinit(struct cnss_plat_data *plat_priv)
 {
 	if (plat_priv->qmp) {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
 		qmp_put(plat_priv->qmp);
+#endif
 		plat_priv->qmp = NULL;
 	}
 }
