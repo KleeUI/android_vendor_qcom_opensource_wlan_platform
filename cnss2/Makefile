@@ -2,6 +2,11 @@
 
 ccflags-y += -Wmissing-prototypes
 
+# Enabled only when the builder selects the Xiaomi hwid provider.
+ifneq ($(strip $(XIAOMI_HWID_ROOT)),)
+ccflags-y += -DCNSS_XIAOMI_L3_HWID -I$(XIAOMI_HWID_ROOT)
+endif
+
 ifeq ($(CONFIG_CNSS_OUT_OF_TREE),y)
 ccflags-y += -I$(WLAN_PLATFORM_ROOT)/cnss_utils
 ccflags-y += -I$(WLAN_PLATFORM_ROOT)/inc

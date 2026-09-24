@@ -14,6 +14,10 @@
 #include "qmi.h"
 #include "genl.h"
 
+#ifdef CNSS_XIAOMI_L3_HWID
+#include "hwid.h"
+#endif
+
 #define WLFW_SERVICE_INS_ID_V01		1
 #define WLFW_CLIENT_ID			0x4b4e454c
 #define BDF_FILE_NAME_PREFIX		"bdwlan"
@@ -875,12 +879,41 @@ static char *cnss_bdf_type_to_str(enum cnss_bdf_type bdf_type)
 	}
 }
 
+#ifdef CNSS_XIAOMI_L3_HWID
+/* Match Xiaomi's L3 board/country selection without changing other boards. */
+static const char *cnss_xiaomi_l3_bdf_name(u32 bdf_type, u32 board_id,
+										u32 chip_id, u32 project, u32 country)
+{
+	if (project != HARDWARE_PROJECT_L3)
+		return NULL;
+	if (bdf_type == CNSS_BDF_REGDB)
+		return "regdb_xiaomi.bin";
+	if (bdf_type != CNSS_BDF_ELF || board_id != 0xff)
+		return NULL;
+	if (chip_id & CHIP_ID_GF_MASK)
+		return country == CountryGlobal ? "bd_l3gfgl.elf" : "bd_l3gf.elf";
+	return country == CountryGlobal ? "bd_l3gl.elf" : "bd_l3.elf";
+}
+#endif
+
 static int cnss_get_bdf_file_name(struct cnss_plat_data *plat_priv,
 				  u32 bdf_type, char *filename,
 				  u32 filename_len)
 {
 	char filename_tmp[MAX_FIRMWARE_NAME_LEN];
 	int ret = 0;
+#ifdef CNSS_XIAOMI_L3_HWID
+	const char *xiaomi_name = cnss_xiaomi_l3_bdf_name(
+		bdf_type, plat_priv->board_info.board_id,
+		plat_priv->chip_info.chip_id, get_hw_version_platform(),
+		get_hw_country_version());
+
+	if (xiaomi_name) {
+		snprintf(filename_tmp, sizeof(filename_tmp), "%s", xiaomi_name);
+		cnss_bus_add_fw_prefix_name(plat_priv, filename, filename_tmp);
+		return 0;
+	}
+#endif
 
 	switch (bdf_type) {
 	case CNSS_BDF_ELF:
